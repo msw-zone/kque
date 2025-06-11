@@ -20,6 +20,7 @@ class QueryResponse(BaseModel):
     sql: str | None = None
     results: list | None = None
     context: str | None = None
+    clarification: str | None = None
     error: str | None = None
     execution_time: float
     model: str | None = None
@@ -38,12 +39,14 @@ def query(req: QueryRequest) -> QueryResponse:
         sql = result.get("sql")
         results = result.get("results")
         context = result.get("context")
+        clarification = result.get("clarification")
     except Exception as e:
         result = {}
         error = str(e)
         sql = None
         results = None
         context = None
+        clarification = None
     execution_time = time.perf_counter() - start
 
     history.add_message(session_id, "assistant", str(result.get("answer")))
@@ -53,6 +56,7 @@ def query(req: QueryRequest) -> QueryResponse:
         sql=sql,
         results=results,
         context=context,
+        clarification=clarification,
         error=error,
         execution_time=execution_time,
         model=config.get("llm", {}).get("model_id"),

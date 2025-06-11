@@ -1,6 +1,6 @@
 # LangGraph SQL Agent
 
-This project provides a modular agent-based system built with [LangGraph](https://github.com/langchain-ai/langgraph). It retrieves relevant context from a Qdrant vector database, generates SQL with your preferred LLM, executes the query against MySQL and persists the full conversation history.
+This project provides a modular agent-based system built with [LangGraph](https://github.com/langchain-ai/langgraph). It retrieves relevant context from a Qdrant vector database, generates SQL with your preferred LLM, executes the query against MySQL and persists the full conversation history. If the agent lacks enough context to answer, it now asks a clarifying question so you can refine the request.
 
 ## Setup
 

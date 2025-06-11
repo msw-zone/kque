@@ -17,6 +17,7 @@ from .nodes.sql_validator import sql_validator_node
 from .nodes.sql_executor import sql_executor_node
 from .nodes.output import output_node
 from .nodes.history import history_node
+from .nodes.clarification import clarification_node
 
 
 class AgentState(Dict):
@@ -47,6 +48,7 @@ def build_graph(config: dict | None = None, session_id: str | None = None, histo
     sg = StateGraph(AgentState)
     sg.add_node("user_query", lambda state: user_query_node(state))
     sg.add_node("retrieval", lambda state: retrieval_node(state, vector_client))
+    sg.add_node("clarify", lambda state: clarification_node(state, llm))
     sg.add_node("build_sql", lambda state: sql_builder_node(state, llm))
     sg.add_node("validate", lambda state: sql_validator_node(state, engine))
     sg.add_node("execute", lambda state: sql_executor_node(state, engine))
@@ -57,7 +59,11 @@ def build_graph(config: dict | None = None, session_id: str | None = None, histo
     # Edges
     sg.set_entry_point("user_query")
     sg.add_edge("user_query", "retrieval")
-    sg.add_edge("retrieval", "build_sql")
+    sg.add_conditional_edges(
+        "retrieval",
+        lambda state: "clarify" if state.get("needs_clarification") else "build_sql",
+    )
+    sg.add_edge("clarify", "output")
     sg.add_edge("build_sql", "validate")
     sg.add_conditional_edges(
         "validate",

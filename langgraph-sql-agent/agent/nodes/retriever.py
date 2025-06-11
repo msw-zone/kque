@@ -6,4 +6,5 @@ def retrieval_node(state: Dict, vector_client: VectorClient, k: int = 5) -> Dict
     query = state.get("query")
     docs = vector_client.similarity_search(query, k=k)
     state["context"] = "\n".join(docs)
+    state["needs_clarification"] = len(docs) == 0
     return state
