@@ -2,8 +2,7 @@ from __future__ import annotations
 
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.sqlite import SqliteSaver
-from langchain.llms import OpenAI
-from langchain.embeddings import OpenAIEmbeddings
+from providers import get_embedding_provider, get_llm_provider
 
 from typing import Dict
 
@@ -17,6 +16,7 @@ from .nodes.sql_builder import sql_builder_node
 from .nodes.sql_validator import sql_validator_node
 from .nodes.sql_executor import sql_executor_node
 from .nodes.output import output_node
+from .nodes.history import history_node
 
 
 class AgentState(Dict):
@@ -28,15 +28,19 @@ class AgentState(Dict):
     error: str
 
 
-def build_graph(config: dict | None = None, debug: bool = False):
+def build_graph(config: dict | None = None, session_id: str | None = None, history_manager=None, debug: bool = False):
     if config is None:
         config = load_config()
 
     # Initialize external dependencies
     vector_config = config.get("vector", {})
-    vector_client = QdrantVectorClient(url=vector_config["url"], collection=vector_config["collection"])
+    vector_client = QdrantVectorClient(url=vector_config["host"], collection=vector_config.get("collection", "documents"))
 
-    llm = OpenAI(api_key=config["embeddings"].get("api_key"))
+    embedding_cfg = config.get("embedding", {})
+    llm_cfg = config.get("llm", {})
+
+    embeddings = get_embedding_provider(embedding_cfg)
+    llm = get_llm_provider(llm_cfg)
     engine = create_mysql_engine(config["sql"]["connection_string"])
 
     # Build graph
@@ -47,6 +51,8 @@ def build_graph(config: dict | None = None, debug: bool = False):
     sg.add_node("validate", lambda state: sql_validator_node(state, engine))
     sg.add_node("execute", lambda state: sql_executor_node(state, engine))
     sg.add_node("output", lambda state: output_node(state, debug=debug))
+    if history_manager and session_id:
+        sg.add_node("history", lambda state: history_node(state, history_manager, session_id))
 
     # Edges
     sg.set_entry_point("user_query")
@@ -58,7 +64,11 @@ def build_graph(config: dict | None = None, debug: bool = False):
         lambda state: "execute" if state.get("valid") else "output",
     )
     sg.add_edge("execute", "output")
-    sg.add_edge("output", END)
+    if history_manager and session_id:
+        sg.add_edge("output", "history")
+        sg.add_edge("history", END)
+    else:
+        sg.add_edge("output", END)
 
     memory = SqliteSaver(".langgraph.db")
     graph = sg.compile(checkpointer=memory)
