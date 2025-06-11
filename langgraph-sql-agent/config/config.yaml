@@ -1,0 +1,13 @@
+vector:
+  type: qdrant
+  url: "http://localhost:6333"
+  collection: "documents"
+
+sql:
+  connection_string: "mysql+pymysql://user:password@localhost:3306/mydb"
+
+embeddings:
+  model: openai
+  api_key: "YOUR_OPENAI_KEY"
+
+
