@@ -27,3 +27,5 @@ if prompt := st.chat_input("Ask a question"):
     answer = result.get("answer")
     st.chat_message("assistant").write(answer)
     manager.add_message(st.session_state.session_id, "assistant", str(answer))
+    if result.get("clarification"):
+        st.info("The assistant requested more details.")

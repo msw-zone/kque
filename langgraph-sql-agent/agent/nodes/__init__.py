@@ -5,6 +5,7 @@ from .sql_validator import sql_validator_node
 from .sql_executor import sql_executor_node
 from .output import output_node
 from .history import history_node
+from .clarification import clarification_node
 
 __all__ = [
     "user_query_node",
@@ -14,4 +15,5 @@ __all__ = [
     "sql_executor_node",
     "output_node",
     "history_node",
+    "clarification_node",
 ]
