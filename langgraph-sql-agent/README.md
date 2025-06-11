@@ -23,4 +23,10 @@ python main.py --query "Your question here"
 streamlit run ui/app.py
 ```
 
+5. Start the FastAPI server:
+
+```bash
+uvicorn api.app:app --reload
+```
+
 See `config/config.yaml` for configuration options.
