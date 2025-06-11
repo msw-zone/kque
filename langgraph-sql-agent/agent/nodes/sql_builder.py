@@ -1,6 +1,6 @@
 from typing import Dict
 from langchain.prompts import ChatPromptTemplate
-from langchain.llms import OpenAI
+from providers.llms.base import LLMProvider
 
 
 SQL_PROMPT = ChatPromptTemplate.from_template(
@@ -11,7 +11,7 @@ SQL_PROMPT = ChatPromptTemplate.from_template(
 )
 
 
-def sql_builder_node(state: Dict, llm: OpenAI) -> Dict:
+def sql_builder_node(state: Dict, llm: LLMProvider) -> Dict:
     prompt = SQL_PROMPT.format(context=state.get("context", ""), question=state.get("query"))
     sql = llm(prompt).strip()
     state["sql"] = sql

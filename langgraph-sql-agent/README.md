@@ -1,6 +1,6 @@
 # LangGraph SQL Agent
 
-This project provides a modular agent-based system built with [LangGraph](https://github.com/...), using a vector database and MySQL backend to answer natural language questions with structured data.
+This project provides a modular agent-based system built with [LangGraph](https://github.com/langchain-ai/langgraph). It retrieves relevant context from a Qdrant vector database, generates SQL with your preferred LLM, executes the query against MySQL and persists the full conversation history.
 
 ## Setup
 
@@ -16,6 +16,11 @@ pip install -r requirements.txt
 
 ```bash
 python main.py --query "Your question here"
+```
+4. Launch the Streamlit UI:
+
+```bash
+streamlit run ui/app.py
 ```
 
 See `config/config.yaml` for configuration options.
